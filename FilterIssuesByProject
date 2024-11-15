@@ -25,7 +25,6 @@ SELECT  @Ad , \'kac%%\', 1+1''' Timeout: 30 Result=> SqlSonuc
     Database.Close Connection: SQLConnection
 END FUNCTION
 
-
 FUNCTION 'Jira - Sonuçlandır' GLOBAL
     Web.InvokeWebService.InvokeWebServiceUseAuth Url: $'''https://domain.net/rest/api/3/issue/%IssueKey%/transitions''' Method: Web.Method.Post Accept: $'''application/json''' ContentType: $'''application/json''' CustomHeaders: $'''X-Atlassian-Token: nocheck
 User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
@@ -40,7 +39,7 @@ User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
       {
         \"content\": [
           {
-            \"text\": \"Merhaba, İşlem yapıldı.\",
+            \"text\": \"Merhaba, İşlem Yapıldı\",
             \"type\": \"text\"
           }
         ],
@@ -64,5 +63,31 @@ User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
             \"name\": \"Done\"
         }
     }
-}''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.AutoDetect AcceptUntrustedCertificates: False Username: $'''username@domain.com''' Password: $'''Password''' TrimRequestBody: True Response=> TransitionResponse
+}''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.AutoDetect AcceptUntrustedCertificates: False Username: $'''username@domain''' Password: $'''Password''' TrimRequestBody: True Response=> TransitionResponse StatusCode=> TransitionStatus
+    IF TransitionStatus <> 204 THEN
+        Web.InvokeWebService.InvokeWebServiceUseAuth Url: $'''https://domain.net//rest/api/3/issue/%IssueKey%/comment''' Method: Web.Method.Post Accept: $'''application/json''' ContentType: $'''application/json''' CustomHeaders: $'''X-Atlassian-Token: nocheck
+User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
+  \"body\": {
+    \"content\": [
+      {
+        \"content\": [
+          {
+            \"text\": \"Bir hata oluştu: \",
+            \"type\": \"text\"
+          }
+        ],
+        \"type\": \"paragraph\"
+      }
+    ],
+    \"type\": \"doc\",
+    \"version\": 1
+  }
+}''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.utf_7 AcceptUntrustedCertificates: False Username: $'''username@domain''' Password: $'''password''' TrimRequestBody: True Response=> CommentResponse StatusCode=> CommentStatusCode
+        # Jira, Otomatik olarak "Waiting For Customer"  adıma günceller. Filtre bölümüzde "Waiting For Support" yakalamaktadır.
+        IF (CommentStatusCode = '400' OR Contains(CommentStatusCode, '404')) = $'''true''' THEN
+            EXIT LOOP
+        END
+    END
+    SET Parametre TO $'''%''%'''
 END FUNCTION
+
