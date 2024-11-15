@@ -40,7 +40,7 @@ User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
       {
         \"content\": [
           {
-            \"text\": \"Merhaba, %SqlSonuc%\",
+            \"text\": \"Merhaba, İşlem yapıldı.\",
             \"type\": \"text\"
           }
         ],
