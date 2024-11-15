@@ -1,0 +1,68 @@
+FUNCTION Main_Copy GLOBAL
+    CALL 'Jira - Filtre Yöntemiyle Issues Kayıtları Getir.'
+    LOOP WHILE (IssuesObject['total']) > (RowIndex)
+        SET IssueKey TO IssuesObject['issues'][RowIndex]['key']
+        SET Raporlayan TO IssuesObject['issues'][RowIndex]['fields']['creator']['displayName']
+        SET Parametre TO IssuesObject['issues'][RowIndex]['fields']['customfield_11169']
+        CALL 'SQL İşlemleri'
+        CALL 'Jira - Sonuçlandır'
+        Variables.IncreaseVariable Value: RowIndex IncrementValue: 1
+    END
+END FUNCTION
+
+FUNCTION 'Jira - Filtre Yöntemiyle Issues Kayıtları Getir.' GLOBAL
+    Web.InvokeWebService.InvokeWebServiceUseAuth Url: $'''https://domain.atlassian.net/rest/api/3/filter/1011''' Method: Web.Method.Get Accept: $'''application/json''' ContentType: $'''application/json''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.AutoDetect AcceptUntrustedCertificates: False Username: $'''usernam@domain.com''' Password: $'''Password''' TrimRequestBody: True Response=> FilterResponse
+    Variables.ConvertJsonToCustomObject Json: FilterResponse CustomObject=> FilterObject
+    Web.InvokeWebService.InvokeWebServiceUseAuth Url: FilterObject['searchUrl'] Method: Web.Method.Get Accept: $'''application/json''' ContentType: $'''application/json''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.AutoDetect AcceptUntrustedCertificates: False Username: $'''username@domain.com''' Password: $'''Password''' TrimRequestBody: True Response=> GetAllIssueResponse
+    Variables.ConvertJsonToCustomObject Json: GetAllIssueResponse CustomObject=> IssuesObject
+END FUNCTION
+
+FUNCTION 'SQL İşlemleri' GLOBAL
+    Database.Connect ConnectionString: $'''Provider=SQLOLEDB.1;Integrated Security=SSPI;Persist Security Info=False;Initial Catalog=BLOG;Data Source=.\\SQLEXPRESS''' Connection=> SQLConnection
+    @@copilotGeneratedAction: 'False'
+Database.ExecuteSqlStatement.Execute Connection: SQLConnection Statement: $'''DECLARE @Ad NVARCHAR(150)= \'%Raporlayan%\'
+SELECT  @Ad , \'kac%%\', 1+1''' Timeout: 30 Result=> SqlSonuc
+    Database.Close Connection: SQLConnection
+END FUNCTION
+
+
+FUNCTION 'Jira - Sonuçlandır' GLOBAL
+    Web.InvokeWebService.InvokeWebServiceUseAuth Url: $'''https://domain.net/rest/api/3/issue/%IssueKey%/transitions''' Method: Web.Method.Post Accept: $'''application/json''' ContentType: $'''application/json''' CustomHeaders: $'''X-Atlassian-Token: nocheck
+User-Agent: PowerAutomateDesktop''' RequestBody: $'''{
+    \"update\": {
+    \"comment\": [
+      {
+        \"add\": {
+                \"body\": {
+    \"version\": 1,
+    \"type\": \"doc\",
+    \"content\": [
+      {
+        \"content\": [
+          {
+            \"text\": \"Merhaba, %SqlSonuc%\",
+            \"type\": \"text\"
+          }
+        ],
+        \"type\": \"paragraph\"
+      }
+    ]
+  },
+  \"visibility\": {
+    \"type\": \"role\",
+    \"value\": \"Administrators\"
+  }
+        }
+      }
+    ]
+    },
+    \"transition\": {
+        \"id\": \"761\"
+    }, 
+    \"fields\": {
+        \"resolution\": {
+            \"name\": \"Done\"
+        }
+    }
+}''' ConnectionTimeout: 30 FollowRedirection: True ClearCookies: False FailOnErrorStatus: False EncodeRequestBody: False UserAgent: $'''Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.21) Gecko/20100312 Firefox/3.6''' Encoding: Web.Encoding.AutoDetect AcceptUntrustedCertificates: False Username: $'''username@domain.com''' Password: $'''Password''' TrimRequestBody: True Response=> TransitionResponse
+END FUNCTION
