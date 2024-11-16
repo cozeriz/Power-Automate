@@ -1,4 +1,9 @@
-FUNCTION Main_Copy GLOBAL
+#
+# Bir tane function alanı kopyaladıktan sonra "Subflows" sağ tıklayarak yapıştırabilirsiniz. Toplu bir şekilde function kopyalayıp, yapıştırmayabilir.
+#
+FUNCTION Main_copy GLOBAL
+# Main_Copy'den Main'e kopyalayın (CTRL+A ile hepsini seçin ve sürükleyin ya da CTRL+X ve CTRL+V kullanın).
+# Ya da yalnızca function içerisini kopyalayın. Main'e direkt yapıştırabilirsiniz.
     CALL 'Jira - Filtre Yöntemiyle Issues Kayıtları Getir.'
     LOOP WHILE (IssuesObject['total']) > (RowIndex)
         SET IssueKey TO IssuesObject['issues'][RowIndex]['key']
