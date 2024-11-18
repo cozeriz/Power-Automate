@@ -5,10 +5,11 @@ FUNCTION Main_copy GLOBAL
 # Main_Copy'den Main'e kopyalayın (CTRL+A ile hepsini seçin ve sürükleyin ya da CTRL+X ve CTRL+V kullanın).
 # Ya da yalnızca function içerisini kopyalayın. Main'e direkt yapıştırabilirsiniz.
     CALL 'Jira - Filtre Yöntemiyle Issues Kayıtları Getir.'
+    SET RowIndex TO 0
     LOOP WHILE (IssuesObject['total']) > (RowIndex)
         SET IssueKey TO IssuesObject['issues'][RowIndex]['key']
         SET Raporlayan TO IssuesObject['issues'][RowIndex]['fields']['creator']['displayName']
-        SET Parametre TO IssuesObject['issues'][RowIndex]['fields']['customfield_11169']
+        SET Parametre TO IssuesObject['issues'][RowIndex]['fields']['customfield_11100']
         CALL 'SQL İşlemleri'
         CALL 'Jira - Sonuçlandır'
         Variables.IncreaseVariable Value: RowIndex IncrementValue: 1
